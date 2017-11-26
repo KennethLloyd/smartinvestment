@@ -16,6 +16,7 @@ public class MainOpt extends JFrame {
 	private JPanel constPanel;
 	private JPanel buttonPanel;
 	private Simplex simplexPanel;
+	private Plotter graphPanel;
 	
 	private JLabel titleLabel;
 	private JLabel zLabel;
@@ -56,7 +57,10 @@ public class MainOpt extends JFrame {
 		sp = new JScrollPane(mainPanel);
 		smartPanel = new SmartInv(cardPanel);
 		
-		simplexPanel = new Simplex(cardPanel);
+		graphPanel = new Plotter(cardPanel);
+		JScrollPane gsp = new JScrollPane(graphPanel);
+		
+		simplexPanel = new Simplex(cardPanel, graphPanel);
 		JScrollPane ssp = new JScrollPane(simplexPanel);
 		
 		mainPanel.setLayout(new GridBagLayout());
@@ -144,7 +148,7 @@ public class MainOpt extends JFrame {
 		cardPanel.add(sp,"MAIN");
 		cardPanel.add(smartPanel,"SMART");
 		cardPanel.add(ssp, "RESULTS");
-		
+		cardPanel.add(gsp, "GRAPH");
 		
 		GridBagConstraints gc = new GridBagConstraints();
 		

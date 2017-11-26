@@ -25,8 +25,9 @@ public class Simplex extends JPanel {
 	private ArrayList<String> rowNames;
 	private ArrayList<ArrayList<Double>> matrix;
 	private ArrayList<JTable> tables;
-	private ArrayList<Double[]> basicSol;
+	private ArrayList<JTable> solTables;
 	private String[] cNames;
+	private String[] solVars;
 	private Double[] sol;
 	
 	private JPanel cardPanel;
@@ -36,6 +37,7 @@ public class Simplex extends JPanel {
 	
 	private JLabel titleLabel;
 	private JButton ultButton;
+	private JButton graphButton;
 	
 	private TableModel model;
 	
@@ -45,14 +47,18 @@ public class Simplex extends JPanel {
 	private GridBagConstraints tgc;
 	
 	private Double mat[][];
-	public Simplex(final JPanel cardPanel) {
+	
+	private Plotter graphPanel;
+	
+	public Simplex(final JPanel cardPanel, Plotter graphPanel) {
 		this.cardPanel = cardPanel;
+		this.graphPanel = graphPanel;
 		
 		mainPanel = new JPanel();
 		mainPanel.setLayout(new GridBagLayout());
 		
 		tables = new ArrayList<JTable>();
-		basicSol = new ArrayList<Double[]>();
+		solTables = new ArrayList<JTable>();
 		
 		headerPanel = new JPanel();
 		titleLabel = new JLabel("RESULTS");
@@ -64,9 +70,17 @@ public class Simplex extends JPanel {
                 cl.show(cardPanel, "MAIN");
 			}
 		});
+		
+		graphButton = new JButton("Show Graph");
+		graphButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				CardLayout cl = (CardLayout)(cardPanel.getLayout());
+				cl.show(cardPanel, "GRAPH");
+			}
+		});
 		headerPanel.setLayout(new GridBagLayout());
 		GridBagConstraints hgc = new GridBagConstraints();
-		hgc.insets = new Insets(0, 0, 0, 0);
+		hgc.insets = new Insets(0, 5, 0, 0);
 		
 		hgc.weightx = 0.5;
 		hgc.weighty = 0.5;
@@ -76,10 +90,21 @@ public class Simplex extends JPanel {
 		
 		headerPanel.add(titleLabel, hgc);
 		
+		hgc.weightx = 0.5;
+		hgc.weighty = 1.0;
+		
 		hgc.gridx = 0;
 		hgc.gridy = 1;
 		
 		headerPanel.add(ultButton, hgc);
+		
+		hgc.weightx = 0.5;
+		hgc.weighty = 1.0;
+		
+		hgc.gridx = 0;
+		hgc.gridy = 2;
+		
+		headerPanel.add(graphButton, hgc);
 		
 		gc = new GridBagConstraints();
 		gc.insets = new Insets(0, 5, 20, 0);
@@ -113,6 +138,13 @@ public class Simplex extends JPanel {
 		this.rhsValues = rhsValues;
 		this.doMaximize = doMaximize;
 		
+		if (!this.doMaximize) { //minimization problem
+			for (int i=0;i<zValues.size();i++) {
+				Double oldVal = zValues.get(i);
+				zValues.set(i, oldVal*-1); //negate the objective function
+			}
+		}
+		
 		this.cols = zVars.size() + eqMultiplier.size() + 2; //num of variables + num of slack variables + z + solution
 		this.rows = eqMultiplier.size() + 1; //number of slack variables + z
 		this.colNames = new ArrayList<String>();
@@ -145,6 +177,11 @@ public class Simplex extends JPanel {
 		cNames = new String[colNames.size()]; //store to static array for table
 		for (int i=0;i<colNames.size();i++) {
 			cNames[i] = colNames.get(i);
+		}
+		
+		solVars = new String[colNames.size()]; //store to static array for basic solution table
+		for (int i=0;i<colNames.size()-1;i++) {
+			solVars[i] = colNames.get(i);
 		}
 	}
 	
@@ -275,10 +312,24 @@ public class Simplex extends JPanel {
 		for (int i=0;i<colNames.size()-1;i++) {
 			sol[i] = matrix.get(rows-1).get(i);
 		}
-		for (int i=0;i<colNames.size()-1;i++) {
-			System.out.println(colNames.get(i)+": " + sol[i]);
-		}
-		basicSol.add(sol);
+		
+		model = new DefaultTableModel(null,solVars);
+	    
+	    ((DefaultTableModel) model).addRow(solVars);
+	    ((DefaultTableModel) model).addRow(sol);
+	    
+	    table = new JTable(model);
+	    
+	    DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+	    centerRenderer.setHorizontalAlignment( JLabel.CENTER );
+	    TableColumnModel tcm = table.getColumnModel();
+	    for (int i=0;i<tcm.getColumnCount();i++) {
+	    	tcm.getColumn(i).setPreferredWidth(170);
+	    	tcm.getColumn(i).setCellRenderer( centerRenderer );
+	    }
+	    
+	    table.setFont(new Font("Serif", Font.ROMAN_BASELINE, 20));
+	    solTables.add(table);
 	}
 	
 	public void addTables() {
@@ -320,10 +371,18 @@ public class Simplex extends JPanel {
 			
 			gc.gridy += 1;
 			JLabel iterationLabel = new JLabel("Iteration " + (i+1));
-			iterationLabel.setFont(new Font("Serif", Font.PLAIN, 20));
+			iterationLabel.setFont(new Font("Serif", Font.BOLD, 20));
 			mainPanel.add(iterationLabel, gc);
 			gc.gridy += 1;
 			mainPanel.add(tables.get(i),gc);
+			
+			gc.gridy += 1;
+			JLabel basicSolLabel = new JLabel("Basic Solution");
+			basicSolLabel.setFont(new Font("Serif", Font.BOLD, 20));
+			mainPanel.add(basicSolLabel, gc);
+			gc.gridy += 1;
+			mainPanel.add(solTables.get(i),gc);
+			
 			mainPanel.revalidate();
 		}
 	}
