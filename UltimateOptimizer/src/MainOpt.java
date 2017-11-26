@@ -36,7 +36,15 @@ public class MainOpt extends JFrame {
 	private ArrayList<JTextField> rhsList = new ArrayList<JTextField>();
 	private ArrayList<JComboBox> eqList = new ArrayList<JComboBox>();
 	
+	private ArrayList<Double> zValues = new ArrayList<Double>();
+	private ArrayList<String> zVars = new ArrayList<String>();
+	private ArrayList<ArrayList<Double>> lhsValues = new ArrayList<ArrayList<Double>>();
+	private ArrayList<ArrayList<String>> lhsVars = new ArrayList<ArrayList<String>>();
+	private ArrayList<Integer> eqMultiplier = new ArrayList<Integer>();
+	private ArrayList<Double> rhsValues = new ArrayList<Double>();
+	
 	private int numConstraints;
+	private boolean doMaximize = true;
 	
 	public MainOpt() {
 		super("Ultimate Optimizer");
@@ -201,6 +209,17 @@ public class MainOpt extends JFrame {
 		
 		submitButton = new JButton("SUBMIT");
 		submitButton.setFont(new Font("Serif", Font.PLAIN, 30));
+		submitButton.addActionListener(new ActionListener() {
+			
+			public void actionPerformed(ActionEvent e) {
+				parseObjFxn();
+				parseConstraints();
+				if (!maxButton.isSelected()) {
+					doMaximize = false;
+				}
+				
+			}
+		});
 		
 		gc.weighty = 15.0;
 		gc.gridx = 0;
@@ -209,11 +228,114 @@ public class MainOpt extends JFrame {
 		
 		mainPanel.add(submitButton, gc);
 		
-		
 		this.setContentPane(cardPanel);
 		this.setExtendedState(JFrame.MAXIMIZED_BOTH);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setVisible(true);
+	}
+	
+	public void parseObjFxn() {
+		//parse the objective function
+		String objFxn = zField.getText();
+		String objNoSpace = objFxn.replaceAll(" ","");
+		String[] objToken = objNoSpace.split("(?=[-+])");
+		for (int i=0;i<objToken.length;i++) {
+			objToken[i] = objToken[i].replaceAll("\\+","");
+		}
+		ArrayList<String> objTokens = new ArrayList<String>(Arrays.asList(objToken));
+		//remove empty elements
+		for (int i=0;i<objTokens.size();i++) {
+			if (objTokens.get(i).length() == 0) {
+				objTokens.remove(i);
+			}
+		}
+		//separate coefficients and variables
+		for (String elem: objTokens) {
+			String value;
+			String variable;
+			for (int j=0;j<elem.length();j++) {
+				if (elem.charAt(j) == '-') continue;
+
+				if (Character.isDigit(elem.charAt(j))) {
+					continue;
+				}
+				else {
+					value = elem.substring(0,j);
+					variable = elem.substring(j,elem.length());
+					zValues.add(Double.parseDouble(value));
+					zVars.add(variable);
+					break;
+				}
+			}
+		}
+
+	}
+	
+	public void parseConstraints() {
+		parseLHSConst();
+		parseEquality();
+		parseRHSConst();
+	}
+	
+	public void parseLHSConst() {
+		for (JTextField lhsField: lhsList) {
+			String lhs = lhsField.getText();
+			String lhsNoSpace = lhs.replaceAll(" ","");
+			String[] lhsToken = lhsNoSpace.split("(?=[-+])");
+			for (int i=0;i<lhsToken.length;i++) {
+				lhsToken[i] = lhsToken[i].replaceAll("\\+","");
+			}
+			ArrayList<String> lhsTokens = new ArrayList<String>(Arrays.asList(lhsToken));
+			//remove empty elements
+			for (int i=0;i<lhsTokens.size();i++) {
+				if (lhsTokens.get(i).length() == 0) {
+					lhsTokens.remove(i);
+				}
+			}
+			//separate coefficients and variables
+			ArrayList<Double> lhsValue = new ArrayList<Double>();
+			ArrayList<String> lhsVar = new ArrayList<String>();
+			for (String elem: lhsTokens) {
+				String value;
+				String variable;
+				for (int j=0;j<elem.length();j++) {
+					if (elem.charAt(j) == '-') continue;
+
+					if (Character.isDigit(elem.charAt(j))) {
+						continue;
+					}
+					else {
+						value = elem.substring(0,j);
+						variable = elem.substring(j,elem.length());
+						lhsValue.add(Double.parseDouble(value));
+						lhsVar.add(variable);
+						break;
+					}
+				}
+			}
+			lhsValues.add(lhsValue);
+			lhsVars.add(lhsVar);
+		}
+	}
+	
+	public void parseEquality() {
+		for (JComboBox eq: eqList) {
+			String selected = (String) eq.getSelectedItem();
+			//set multiplier for the slack variables
+			if (selected.equals("<=")) {
+				eqMultiplier.add(1);
+			}
+			else {
+				eqMultiplier.add(-1);
+			}
+		}
+	}
+	
+	public void parseRHSConst() {
+		for (JTextField rhsField: rhsList) {
+			String rhs = rhsField.getText();
+			rhsValues.add(Double.parseDouble(rhs));
+		}
 	}
 
 	public static void main(String[] args) {
