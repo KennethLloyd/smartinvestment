@@ -46,6 +46,8 @@ public class MainOpt extends JFrame {
 	private int numConstraints;
 	private boolean doMaximize = true;
 	
+	private Simplex simplex;
+	
 	public MainOpt() {
 		super("Ultimate Optimizer");
 		
@@ -86,7 +88,7 @@ public class MainOpt extends JFrame {
 		
 		objPanel = new JPanel();
 		objPanel.setLayout(new FlowLayout());
-		zLabel = new JLabel("Z: ");
+		zLabel = new JLabel("Z = ");
 		zLabel.setFont(new Font("Serif", Font.PLAIN, 30));
 		zField = new JTextField("Input the objective function here...",30);
 		zField.addMouseListener(new MouseAdapter(){
@@ -217,7 +219,7 @@ public class MainOpt extends JFrame {
 				if (!maxButton.isSelected()) {
 					doMaximize = false;
 				}
-				
+				simplex = new Simplex(zValues, zVars, lhsValues, lhsVars, eqMultiplier, rhsValues, doMaximize);		
 			}
 		});
 		
@@ -260,9 +262,19 @@ public class MainOpt extends JFrame {
 					continue;
 				}
 				else {
-					value = elem.substring(0,j);
+					if (j <= 1) { //no coefficient
+						if (j == 0) { //variable already
+							value = "1";
+						}
+						else { //sign then variable
+							value = "-1";
+						}
+					}
+					else { //with coefficient
+						value = elem.substring(0,j);
+					}
 					variable = elem.substring(j,elem.length());
-					zValues.add(Double.parseDouble(value));
+					zValues.add(-1 * Double.parseDouble(value));
 					zVars.add(variable);
 					break;
 				}
@@ -298,19 +310,29 @@ public class MainOpt extends JFrame {
 			for (String elem: lhsTokens) {
 				String value;
 				String variable;
+				boolean foundCoeff = false;
 				for (int j=0;j<elem.length();j++) {
 					if (elem.charAt(j) == '-') continue;
 
 					if (Character.isDigit(elem.charAt(j))) {
+						foundCoeff = true;
 						continue;
 					}
-					else {
-						value = elem.substring(0,j);
-						variable = elem.substring(j,elem.length());
-						lhsValue.add(Double.parseDouble(value));
-						lhsVar.add(variable);
-						break;
+					if (j <= 1 && foundCoeff == false) { //no coefficient
+						if (j == 0) { //variable already
+							value = "1";
+						}
+						else { //sign then variable
+							value = "-1";
+						}
 					}
+					else { //with coefficient
+						value = elem.substring(0,j);
+					}
+					variable = elem.substring(j,elem.length());
+					lhsValue.add(Double.parseDouble(value));
+					lhsVar.add(variable);
+					break;
 				}
 			}
 			lhsValues.add(lhsValue);
