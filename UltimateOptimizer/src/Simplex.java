@@ -1,6 +1,5 @@
 import java.util.ArrayList;
 
-
 public class Simplex {
 	private ArrayList<Double> zValues;
 	private ArrayList<String> zVars;
@@ -37,6 +36,7 @@ public class Simplex {
 		}
 		
 		setInitialTableu();
+		doSimplexMethod();
 	}
 	
 	public void fillColNames() {
@@ -100,9 +100,76 @@ public class Simplex {
 				}
 			}
 		}
-		
-		for (ArrayList<Double> mat: matrix) {
-			System.out.println(mat);
+	}
+	
+	public boolean hasNegative(ArrayList<Double> row) { //check if there are still negative numbers in the bottom row
+		for (int i=0;i<row.size();i++) {
+			if (row.get(i) < 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public void doSimplexMethod() {
+		int counter = 1;
+		System.out.println("Iteration: " + counter);
+	    for (ArrayList<Double> mat: matrix) {
+	    	System.out.println(mat);
+	    }
+		while (hasNegative(matrix.get(rows-1))) {
+			Double max = 0.0;
+			int pivotCol = -1; //as null
+			ArrayList<Double> bottomRow = matrix.get(rows-1);
+			for (int i=0;i<bottomRow.size()-1;i++) { //get the pivot column by choosing the negative number with the highest magnitude in the bottom row
+				if (bottomRow.get(i) < 0 && Math.abs(bottomRow.get(i)) > max) {
+					max = Math.abs(bottomRow.get(i));
+					pivotCol = i; //save pivot index
+				}
+			}
+			System.out.println("Pivotcol: " + pivotCol);
+			Double min = -1.0;
+			int minIndex = -1; //index of the smallest positive test ratio
+			for (int j=0;j<rows-1;j++) { //exclude the last row
+				//a/b where a is the rightmost value in its particular row
+				Double testRatio = (matrix.get(j).get(cols-1))/(matrix.get(j).get(pivotCol));
+				if (testRatio > 0 && min == -1.0) { //first value of min
+					min = testRatio;
+					minIndex = j;
+				}
+				else if (testRatio > 0 && testRatio < min) { //get the smallest positive test ratio
+					min = testRatio; //update value of min
+					minIndex = j;
+				}
+			}
+			Double pivotElem = matrix.get(minIndex).get(pivotCol); //get the pivot element
+			System.out.println("Pivot elem: " + pivotElem);
+			
+			//perform steps in gauss-jordan
+		    for (int i=0;i<cols;i++) {
+		    	//do normalization
+		    	Double valToBeRounded = matrix.get(minIndex).get(i)/pivotElem;
+		    	Double rounded = Math.round(valToBeRounded * 10000.0)/10000.0; //round to four decimal places
+		    	matrix.get(minIndex).set(i, rounded);
+		    }
+		    int pivotRow = minIndex;
+		    
+		    for (int i=0;i<rows;i++) {
+		    	if (i != pivotRow) { //for each row except the normalized row
+		    		Double multiplier = matrix.get(i).get(pivotCol);
+		    		for (int j=0;j<cols;j++) { //for each column
+		    			//current element - (multiplier * value to be eliminated)
+		    			Double valToBeRounded = matrix.get(i).get(j) - (multiplier * matrix.get(pivotRow).get(j));
+		    			Double rounded = Math.round(valToBeRounded * 10000.0)/10000.0; //round to four decimal places
+		    			matrix.get(i).set(j, rounded);
+		    		}
+		    	}
+		    }
+		    counter++;
+		    System.out.println("Iteration: " + counter);
+		    for (ArrayList<Double> mat: matrix) {
+		    	System.out.println(mat);
+		    }
 		}
 	}
 }
