@@ -15,6 +15,7 @@ public class MainOpt extends JFrame {
 	private JPanel objPanel;
 	private JPanel constPanel;
 	private JPanel buttonPanel;
+	private Simplex simplexPanel;
 	
 	private JLabel titleLabel;
 	private JLabel zLabel;
@@ -46,8 +47,6 @@ public class MainOpt extends JFrame {
 	private int numConstraints;
 	private boolean doMaximize = true;
 	
-	private Simplex simplex;
-	
 	public MainOpt() {
 		super("Ultimate Optimizer");
 		
@@ -56,6 +55,9 @@ public class MainOpt extends JFrame {
 		mainPanel = new JPanel();
 		sp = new JScrollPane(mainPanel);
 		smartPanel = new SmartInv(cardPanel);
+		
+		simplexPanel = new Simplex(cardPanel);
+		JScrollPane ssp = new JScrollPane(simplexPanel);
 		
 		mainPanel.setLayout(new GridBagLayout());
 		
@@ -141,6 +143,8 @@ public class MainOpt extends JFrame {
 		
 		cardPanel.add(sp,"MAIN");
 		cardPanel.add(smartPanel,"SMART");
+		cardPanel.add(ssp, "RESULTS");
+		
 		
 		GridBagConstraints gc = new GridBagConstraints();
 		
@@ -219,7 +223,10 @@ public class MainOpt extends JFrame {
 				if (!maxButton.isSelected()) {
 					doMaximize = false;
 				}
-				simplex = new Simplex(zValues, zVars, lhsValues, lhsVars, eqMultiplier, rhsValues, doMaximize);		
+				simplexPanel.setValues(zValues, zVars, lhsValues, lhsVars, eqMultiplier, rhsValues, doMaximize);
+				simplexPanel.startSolving();
+				CardLayout cl = (CardLayout)(cardPanel.getLayout());
+                cl.show(cardPanel, "RESULTS");
 			}
 		});
 		
