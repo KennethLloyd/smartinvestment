@@ -66,6 +66,7 @@ public class Simplex extends JPanel {
 		ultButton = new JButton("Go to Ultimate Optimizer");
 		ultButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				MainOpt.clearEverything();
 				CardLayout cl = (CardLayout)(cardPanel.getLayout());
                 cl.show(cardPanel, "MAIN");
 			}

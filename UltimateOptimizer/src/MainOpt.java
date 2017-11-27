@@ -13,7 +13,7 @@ public class MainOpt extends JFrame {
 	private JPanel headerPanel;
 	private JPanel constHeadPanel;
 	private JPanel objPanel;
-	private JPanel constPanel;
+	private static JPanel constPanel;
 	private JPanel buttonPanel;
 	private Simplex simplexPanel;
 	private Plotter graphPanel;
@@ -22,7 +22,7 @@ public class MainOpt extends JFrame {
 	private JLabel zLabel;
 	private JLabel constLabel;
 	
-	private JTextField zField;
+	private static JTextField zField;
 	
 	private JButton smartButton;
 	private JButton constButton;
@@ -34,18 +34,18 @@ public class MainOpt extends JFrame {
 	private JRadioButton maxButton;
 	private JRadioButton minButton;
 	
-	private ArrayList<JTextField> lhsList = new ArrayList<JTextField>();
-	private ArrayList<JTextField> rhsList = new ArrayList<JTextField>();
-	private ArrayList<JComboBox> eqList = new ArrayList<JComboBox>();
+	private static ArrayList<JTextField> lhsList = new ArrayList<JTextField>();
+	private static ArrayList<JTextField> rhsList = new ArrayList<JTextField>();
+	private static ArrayList<JComboBox> eqList = new ArrayList<JComboBox>();
 	
-	private ArrayList<Double> zValues = new ArrayList<Double>();
-	private ArrayList<String> zVars = new ArrayList<String>();
-	private ArrayList<ArrayList<Double>> lhsValues = new ArrayList<ArrayList<Double>>();
-	private ArrayList<ArrayList<String>> lhsVars = new ArrayList<ArrayList<String>>();
-	private ArrayList<Integer> eqMultiplier = new ArrayList<Integer>();
-	private ArrayList<Double> rhsValues = new ArrayList<Double>();
+	private static ArrayList<Double> zValues = new ArrayList<Double>();
+	private static ArrayList<String> zVars = new ArrayList<String>();
+	private static ArrayList<ArrayList<Double>> lhsValues = new ArrayList<ArrayList<Double>>();
+	private static ArrayList<ArrayList<String>> lhsVars = new ArrayList<ArrayList<String>>();
+	private static ArrayList<Integer> eqMultiplier = new ArrayList<Integer>();
+	private static ArrayList<Double> rhsValues = new ArrayList<Double>();
 	
-	private int numConstraints;
+	private static int numConstraints;
 	private boolean doMaximize = true;
 	
 	public MainOpt() {
@@ -369,6 +369,30 @@ public class MainOpt extends JFrame {
 			String rhs = rhsField.getText();
 			rhsValues.add(Double.parseDouble(rhs));
 		}
+	}
+	
+	public static void clearEverything() {
+		zField.setText("");
+		constPanel.removeAll();
+		numConstraints = 0;
+		lhsList.clear();
+		lhsList.trimToSize();
+		eqList.clear();
+		eqList.trimToSize();
+		rhsList.clear();
+		rhsList.trimToSize();
+		zValues.clear();
+		zValues.trimToSize();
+		zVars.clear();
+		zVars.trimToSize();
+		lhsValues.clear();
+		lhsValues.trimToSize();
+		lhsVars.clear();
+		lhsValues.trimToSize();
+		eqMultiplier.clear();
+		eqMultiplier.trimToSize();
+		rhsValues.clear();
+		rhsValues.trimToSize();
 	}
 
 	public static void main(String[] args) {
