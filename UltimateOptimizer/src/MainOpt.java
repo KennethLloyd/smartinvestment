@@ -56,13 +56,14 @@ public class MainOpt extends JFrame {
 		cardPanel.setLayout(new CardLayout());
 		mainPanel = new JPanel();
 		sp = new JScrollPane(mainPanel);
-		smartPanel = new SmartInv(cardPanel);
 		
 		graphPanel = new Plotter(cardPanel);
 		JScrollPane gsp = new JScrollPane(graphPanel);
 		
 		simplexPanel = new Simplex(cardPanel, graphPanel);
 		JScrollPane ssp = new JScrollPane(simplexPanel);
+		
+		smartPanel = new SmartInv(cardPanel, simplexPanel);
 		
 		mainPanel.setLayout(new GridBagLayout());
 		

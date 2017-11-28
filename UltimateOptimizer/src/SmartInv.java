@@ -11,6 +11,8 @@ public class SmartInv extends JPanel {
 	private JPanel headerPanel;
 	private JPanel initialPanel;
 	private JPanel securityPanel;
+	private Simplex simplexPanel;
+	private Plotter graphPanel;
 	
 	private JLabel titleLabel;
 	private JLabel yearLabel;
@@ -37,10 +39,38 @@ public class SmartInv extends JPanel {
 	private JTextField totWField;
 	private JTextField thereYField;
 	
-	public SmartInv(final JPanel cardPanel) {
+	private int years;
+	private int rows;
+	private int cols;
+	private double initInvestment;
+	private double annualYield;
+	private String security[] = {"X","Y","Z","W"};
+	private ArrayList<String> constraints;
+	private int maturity[] = new int[4];
+	private double yield[] = new double[4];
+	private double now;
+	
+	private static ArrayList<String> allVars = new ArrayList<String>();
+	private static ArrayList<Double> zValues = new ArrayList<Double>();
+	private static ArrayList<String> zVars = new ArrayList<String>();
+	private static ArrayList<ArrayList<Double>> lhsValues = new ArrayList<ArrayList<Double>>();
+	private static ArrayList<Integer> eqMultiplier = new ArrayList<Integer>();
+	private static ArrayList<ArrayList<String>> lhsVars = new ArrayList<ArrayList<String>>();
+	private static ArrayList<Double> rhsValues = new ArrayList<Double>();
+	private static ArrayList<String> lhsList = new ArrayList<String>();
+	private static ArrayList<String> rhsList = new ArrayList<String>();
+	
+	
+	private String arr[][];
+	private String objFxn;
+	
+	public SmartInv(final JPanel cardPanel, final Simplex simplexPanel) {
 		this.cardPanel = cardPanel;
+		this.simplexPanel = simplexPanel;
 		mainPanel = new JPanel();
 		mainPanel.setLayout(new GridBagLayout());
+		
+		graphPanel = new Plotter(cardPanel);
 		
 		headerPanel = new JPanel();
 		titleLabel = new JLabel("SMART INVESTMENT");
@@ -249,6 +279,45 @@ public class SmartInv extends JPanel {
 		
 		submitButton = new JButton("SUBMIT");
 		submitButton.setFont(new Font("Serif", Font.PLAIN, 30));
+		submitButton.addActionListener(new ActionListener() {
+
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				//get inputs supplied by the user
+				years = Integer.parseInt(yearField.getText());
+				initInvestment = Double.parseDouble(initField.getText());
+				annualYield = Double.parseDouble(yieldField.getText());
+				
+				maturity[0] = 1; //initial
+				maturity[1] = Integer.parseInt(matYField.getText());
+				maturity[2] = Integer.parseInt(matZField.getText());
+				maturity[3] = Integer.parseInt(matWField.getText());
+				
+				//convert to decimals
+				yield[0] = annualYield * 0.01;
+				yield[1] = Double.parseDouble(thereYField.getText()) * 0.01;
+				yield[2] = Double.parseDouble(totZField.getText()) * 0.01;
+				yield[3] = Double.parseDouble(totWField.getText()) * 0.01;
+				
+				now = Double.parseDouble(totYField.getText()) * 0.01;
+				
+				rows = security.length;
+				cols = years;
+				arr = new String[rows][cols+1]; //cols+1 for getting the objective function
+				constraints = new ArrayList<String>();
+				
+				createMatrix();
+				formConstraints();
+				parseObjFxn();
+				parseConstraints();
+				
+				simplexPanel.setValues(allVars, zValues, zVars, lhsValues, lhsVars, eqMultiplier, rhsValues, true);
+				simplexPanel.startSolving();
+				CardLayout cl = (CardLayout)(cardPanel.getLayout());
+                cl.show(cardPanel, "RESULTS");
+			}
+			
+		});
 		
 		gc.weighty = 15.0;
 		gc.gridx = 0;
@@ -258,5 +327,215 @@ public class SmartInv extends JPanel {
 		mainPanel.add(submitButton, gc);
         
 		this.add(mainPanel);
+	}
+	
+	public void createMatrix() {
+		for (int i=0;i<rows;i++) {
+			for (int j=0;j<years;j++) {
+				if (i == 1 && j == 2) { //can buy security Y any year but year 3
+					continue;
+				}
+				if (i == 2 && j == 0) { //can buy security Z anytime after the first year
+					continue;
+				}
+				if (maturity[i] + j <= years) { //still possible to mature
+					arr[i][j] = security[i] + (j+1);
+					if (i == 3) break; ///W is a one-time opportunity 
+				}
+			}
+		}
+		
+		for (int i=0;i<rows;i++) {
+			for (int j=0;j<cols;j++) {
+				System.out.print(arr[i][j]);
+			}
+			System.out.println();
+		}
+	}
+	
+	public void formConstraints() {
+		for (int i=0;i<cols+1;i++) {
+			if (i == 0) { //the first investment
+				String eqn = "";
+				for (int j=0;j<rows;j++) {
+					if (arr[j][i] != null) {
+						if (j+1 != rows) { //get all the terms from the matrix which are not null
+							eqn += arr[j][i] + "+";
+						}
+						else { //last security, equate to the initial investment
+							eqn += arr[j][i] + " = " + initInvestment;
+						}
+					}
+				}
+				constraints.add(eqn);
+			}
+			else {
+				String eqn = "";
+				for (int j=0;j<rows;j++) {
+					if (arr[j][i] != null) { //get all terms not equal to null
+						eqn += arr[j][i] + "+";
+					}
+					if (j+1 == rows) {
+						if (arr[j][i] != null) eqn += arr[j][i]; //all terms has been added
+						for (int k=0;k<rows;k++) {
+							if (i - maturity[k] >= 0 && arr[k][i-maturity[k]] != null) {
+								double interest;
+								if (i==2 && k==1) { //first yield of y, use now
+									interest = ((initInvestment + (initInvestment * now))/initInvestment);
+								}
+								else {
+									interest = ((initInvestment + (initInvestment * yield[k]))/initInvestment);
+								}
+								eqn += "-" + interest + arr[k][i-maturity[k]];
+							}
+							if (k+1 == rows) {
+								eqn += " = 0";
+							}
+						}
+					}
+				}
+				System.out.println(eqn);
+				if (i == cols) {
+					objFxn = eqn;
+					System.out.println(objFxn);
+				}
+				else constraints.add(eqn);
+			}
+		}
+	}
+	
+	public void parseObjFxn() {
+		//parse the objective function
+		objFxn = objFxn.split("=")[0];
+		objFxn = objFxn.replace("-", "+"); //there are no negative yields
+		String objNoSpace = objFxn.replaceAll(" ","");
+		String[] objToken = objNoSpace.split("(?=[-+])");
+		for (int i=0;i<objToken.length;i++) {
+			objToken[i] = objToken[i].replaceAll("\\+","");
+		}
+		ArrayList<String> objTokens = new ArrayList<String>(Arrays.asList(objToken));
+		//remove empty elements
+		for (int i=0;i<objTokens.size();i++) {
+			if (objTokens.get(i).length() == 0) {
+				objTokens.remove(i);
+			}
+		}
+		
+		//separate coefficients and variables
+		for (String elem: objTokens) {
+			boolean hasDigit = false;
+			String value;
+			String variable;
+			for (int j=0;j<elem.length();j++) {
+				if (elem.charAt(j) == '-') continue;
+				
+				if (elem.charAt(j) == '.') continue;
+
+				if (Character.isDigit(elem.charAt(j))) {
+					hasDigit = true;
+					continue;
+				}
+				else {
+					if (j <= 1) { //no coefficient
+						if (j == 0) { //variable already
+							value = "1";
+						}
+						else if (hasDigit) {
+							value = elem.substring(0,j);
+						}
+						else { //sign then variable
+							value = "-1";
+						}
+					}
+					else { //with coefficient
+						value = elem.substring(0,j);
+					}
+					variable = elem.substring(j,elem.length());
+					zValues.add(-1 * Double.parseDouble(value));
+					zVars.add(variable);
+					allVars.add(variable);
+					break;
+				}
+			}
+		}
+	}
+	
+	public void parseConstraints() {
+		for (int i=0;i<constraints.size();i++) {
+			String constraint = constraints.get(i);
+			String tokens[] = constraint.split("=");
+			lhsList.add(tokens[0]);
+			rhsList.add(tokens[1]);
+		}
+		parseLHSConst();
+		parseEquality();
+		parseRHSConst();
+	}
+	
+	public void parseLHSConst() {
+		for (String lhs: lhsList) {
+			String lhsNoSpace = lhs.replaceAll(" ","");
+			String[] lhsToken = lhsNoSpace.split("(?=[-+])");
+			for (int i=0;i<lhsToken.length;i++) {
+				lhsToken[i] = lhsToken[i].replaceAll("\\+","");
+			}
+			ArrayList<String> lhsTokens = new ArrayList<String>(Arrays.asList(lhsToken));
+			//remove empty elements
+			for (int i=0;i<lhsTokens.size();i++) {
+				if (lhsTokens.get(i).length() == 0) {
+					lhsTokens.remove(i);
+				}
+			}
+			//separate coefficients and variables
+			ArrayList<Double> lhsValue = new ArrayList<Double>();
+			ArrayList<String> lhsVar = new ArrayList<String>();
+			for (String elem: lhsTokens) {
+				String value;
+				String variable;
+				boolean foundCoeff = false;
+				for (int j=0;j<elem.length();j++) {
+					if (elem.charAt(j) == '-') continue;
+					
+					if (elem.charAt(j) == '.') continue;
+
+					if (Character.isDigit(elem.charAt(j))) {
+						foundCoeff = true;
+						continue;
+					}
+					if (j <= 1 && foundCoeff == false) { //no coefficient
+						if (j == 0) { //variable already
+							value = "1";
+						}
+						else { //sign then variable
+							value = "-1";
+						}
+					}
+					else { //with coefficient
+						value = elem.substring(0,j);
+					}
+					variable = elem.substring(j,elem.length());
+					lhsValue.add(Double.parseDouble(value));
+					lhsVar.add(variable);
+					if (!allVars.contains(variable)) {
+						allVars.add(variable);
+					}
+					break;
+				}
+			}
+			lhsValues.add(lhsValue);
+			lhsVars.add(lhsVar);
+		}
+	}
+	
+	public void parseEquality() {
+		for (int i=0;i<years;i++) {
+			eqMultiplier.add(1);
+		}
+	}
+	
+	public void parseRHSConst() {
+		for (String rhs: rhsList) {
+			rhsValues.add(Double.parseDouble(rhs));
+		}
 	}
 }

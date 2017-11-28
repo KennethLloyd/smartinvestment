@@ -132,6 +132,8 @@ public class Simplex extends JPanel {
 	}
 	
 	public void setValues(ArrayList<String> allVars, ArrayList<Double> zValues, ArrayList<String> zVars, ArrayList<ArrayList<Double>> lhsValues, ArrayList<ArrayList<String>> lhsVars, ArrayList<Integer> eqMultiplier, ArrayList<Double> rhsValues, boolean doMaximize) {
+		tables.clear();
+		solTables.clear();
 		this.allVars = allVars;
 		this.zValues = zValues;
 		this.zVars = zVars;
@@ -401,7 +403,6 @@ public class Simplex extends JPanel {
 	}
 	
 	public void renderTables() {
-		
 		gc.gridx = 0;
 		gc.gridy = 2;
 		
