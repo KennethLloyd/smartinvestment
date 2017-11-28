@@ -17,6 +17,7 @@ public class MainOpt extends JFrame {
 	private JPanel buttonPanel;
 	private Simplex simplexPanel;
 	private Plotter graphPanel;
+	private Manual manualPanel;
 	
 	private JLabel titleLabel;
 	private JLabel zLabel;
@@ -24,6 +25,7 @@ public class MainOpt extends JFrame {
 	
 	private static JTextField zField;
 	
+	private JButton manualButton;
 	private JButton smartButton;
 	private JButton constButton;
 	private JButton submitButton;
@@ -60,6 +62,9 @@ public class MainOpt extends JFrame {
 		graphPanel = new Plotter(cardPanel);
 		JScrollPane gsp = new JScrollPane(graphPanel);
 		
+		manualPanel = new Manual(cardPanel);
+		JScrollPane msp = new JScrollPane(manualPanel);
+		
 		simplexPanel = new Simplex(cardPanel, graphPanel);
 		JScrollPane ssp = new JScrollPane(simplexPanel);
 		
@@ -75,6 +80,13 @@ public class MainOpt extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				CardLayout cl = (CardLayout)(cardPanel.getLayout());
                 cl.show(cardPanel, "SMART");
+			}
+		});
+		manualButton = new JButton("Go to User Manual");
+		manualButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				CardLayout cl = (CardLayout)(cardPanel.getLayout());
+                cl.show(cardPanel, "MANUAL");
 			}
 		});
 		headerPanel.setLayout(new GridBagLayout());
@@ -93,6 +105,11 @@ public class MainOpt extends JFrame {
 		hgc.gridy = 1;
 		
 		headerPanel.add(smartButton, hgc);
+		
+		hgc.gridx = 0;
+		hgc.gridy = 2;
+		
+		headerPanel.add(manualButton, hgc);
 		
 		objPanel = new JPanel();
 		objPanel.setLayout(new FlowLayout());
@@ -151,6 +168,7 @@ public class MainOpt extends JFrame {
 		cardPanel.add(smartPanel,"SMART");
 		cardPanel.add(ssp, "RESULTS");
 		cardPanel.add(gsp, "GRAPH");
+		cardPanel.add(msp, "MANUAL");
 		
 		GridBagConstraints gc = new GridBagConstraints();
 		
