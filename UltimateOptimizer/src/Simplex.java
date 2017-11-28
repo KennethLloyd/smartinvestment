@@ -12,6 +12,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class Simplex extends JPanel {
+	ArrayList<String> allVars;
 	private ArrayList<Double> zValues;
 	private ArrayList<String> zVars;
 	private ArrayList<ArrayList<Double>> lhsValues;
@@ -130,7 +131,8 @@ public class Simplex extends JPanel {
 		this.add(mainPanel);
 	}
 	
-	public void setValues(ArrayList<Double> zValues, ArrayList<String> zVars, ArrayList<ArrayList<Double>> lhsValues, ArrayList<ArrayList<String>> lhsVars, ArrayList<Integer> eqMultiplier, ArrayList<Double> rhsValues, boolean doMaximize) {
+	public void setValues(ArrayList<String> allVars, ArrayList<Double> zValues, ArrayList<String> zVars, ArrayList<ArrayList<Double>> lhsValues, ArrayList<ArrayList<String>> lhsVars, ArrayList<Integer> eqMultiplier, ArrayList<Double> rhsValues, boolean doMaximize) {
+		this.allVars = allVars;
 		this.zValues = zValues;
 		this.zVars = zVars;
 		this.lhsValues = lhsValues;
@@ -146,7 +148,7 @@ public class Simplex extends JPanel {
 			}
 		}
 		
-		this.cols = zVars.size() + eqMultiplier.size() + 2; //num of variables + num of slack variables + z + solution
+		this.cols = allVars.size() + eqMultiplier.size() + 2; //num of variables + num of slack variables + z + solution
 		this.rows = eqMultiplier.size() + 1; //number of slack variables + z
 		this.colNames = new ArrayList<String>();
 		this.rowNames = new ArrayList<String>();
@@ -166,7 +168,7 @@ public class Simplex extends JPanel {
 	}
 	
 	public void fillColNames() {
-		for (String var: zVars) {
+		for (String var: allVars) {
 			colNames.add(var);
 		}
 		for (int i=0;i<eqMultiplier.size();i++) {
@@ -174,6 +176,8 @@ public class Simplex extends JPanel {
 		}
 		colNames.add("Z");
 		colNames.add("Solution");
+		
+		System.out.println(colNames);
 		
 		cNames = new String[colNames.size()]; //store to static array for table
 		for (int i=0;i<colNames.size();i++) {
@@ -191,14 +195,16 @@ public class Simplex extends JPanel {
 			rowNames.add("S" + (i+1));
 		}
 		rowNames.add("Z");
+		
+		System.out.println(rowNames);
 	}
 	
 	public void setInitialTableu() {	
-		int sPos = zVars.size();
+		int sPos = allVars.size();
 		
 		for (int i=0;i<lhsValues.size();i++) { //per constraint
 			for (int j=0;j<cols;j++) {
-				if (zVars.size() > j) { //limit to variable numbers only
+				if (allVars.size() > j) { //limit to variable numbers only
 					int ind = lhsVars.get(i).indexOf(colNames.get(j));
 					if (ind != -1) { //search for occurence
 						matrix.get(i).add(j, lhsValues.get(i).get(ind));
@@ -263,23 +269,32 @@ public class Simplex extends JPanel {
 				if (bottomRow.get(i) < 0 && Math.abs(bottomRow.get(i)) > max) {
 					max = Math.abs(bottomRow.get(i));
 					pivotCol = i; //save pivot index
+					System.out.println(pivotCol);
 				}
 			}
 			Double min = -1.0;
 			int minIndex = -1; //index of the smallest positive test ratio
 			for (int j=0;j<rows-1;j++) { //exclude the last row
-				//a/b where a is the rightmost value in its particular row
-				Double testRatio = (matrix.get(j).get(cols-1))/(matrix.get(j).get(pivotCol));
-				if (testRatio > 0 && min == -1.0) { //first value of min
-					min = testRatio;
-					minIndex = j;
-				}
-				else if (testRatio > 0 && testRatio < min) { //get the smallest positive test ratio
-					min = testRatio; //update value of min
-					minIndex = j;
+				if (matrix.get(j).get(pivotCol) > 0) {
+					//a/b where a is the rightmost value in its particular row
+					Double testRatio = (matrix.get(j).get(cols-1))/(matrix.get(j).get(pivotCol));
+					if (testRatio > 0 && min == -1.0) { //first value of min
+						min = testRatio;
+						minIndex = j;
+					}
+					else if (testRatio > 0 && testRatio < min) { //get the smallest positive test ratio
+						min = testRatio; //update value of min
+						minIndex = j;
+					}
+					else if (min == -1.0) {
+						min = testRatio; //update value of min
+						minIndex = j;
+					}
 				}
 			}
 			Double pivotElem = matrix.get(minIndex).get(pivotCol); //get the pivot element
+			System.out.println("MI: " + minIndex);
+			System.out.println(pivotElem);
 			
 			//perform steps in gauss-jordan
 		    for (int i=0;i<cols;i++) {
@@ -305,6 +320,10 @@ public class Simplex extends JPanel {
 		    addTables();
 		    
 		    counter++;
+		    System.out.println("Iteration: " + counter);
+		    for (ArrayList<Double> mat: matrix) {
+		    	System.out.println(mat);
+		    }
 		}
 	}
 	
@@ -330,10 +349,11 @@ public class Simplex extends JPanel {
 	    centerRenderer.setHorizontalAlignment( JLabel.CENTER );
 	    TableColumnModel tcm = table.getColumnModel();
 	    for (int i=0;i<tcm.getColumnCount();i++) {
-	    	tcm.getColumn(i).setPreferredWidth(170);
+	    	tcm.getColumn(i).setPreferredWidth(170);	
 	    	tcm.getColumn(i).setCellRenderer( centerRenderer );
 	    }
 	    
+	    table.setRowHeight(0,30);
 	    table.setFont(new Font("Serif", Font.ROMAN_BASELINE, 20));
 	    solTables.add(table);
 	}
@@ -363,6 +383,7 @@ public class Simplex extends JPanel {
 	    }
 	    
 	    table.setFont(new Font("Serif", Font.ROMAN_BASELINE, 20));
+	    table.setRowHeight(0,30);
 	    tables.add(table);
 	}
 	

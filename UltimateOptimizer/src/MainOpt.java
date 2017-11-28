@@ -38,6 +38,7 @@ public class MainOpt extends JFrame {
 	private static ArrayList<JTextField> rhsList = new ArrayList<JTextField>();
 	private static ArrayList<JComboBox> eqList = new ArrayList<JComboBox>();
 	
+	private static ArrayList<String> allVars = new ArrayList<String>();
 	private static ArrayList<Double> zValues = new ArrayList<Double>();
 	private static ArrayList<String> zVars = new ArrayList<String>();
 	private static ArrayList<ArrayList<Double>> lhsValues = new ArrayList<ArrayList<Double>>();
@@ -227,7 +228,8 @@ public class MainOpt extends JFrame {
 				if (!maxButton.isSelected()) {
 					doMaximize = false;
 				}
-				simplexPanel.setValues(zValues, zVars, lhsValues, lhsVars, eqMultiplier, rhsValues, doMaximize);
+				System.out.println(allVars);
+				simplexPanel.setValues(allVars, zValues, zVars, lhsValues, lhsVars, eqMultiplier, rhsValues, doMaximize);
 				simplexPanel.startSolving();
 				CardLayout cl = (CardLayout)(cardPanel.getLayout());
                 cl.show(cardPanel, "RESULTS");
@@ -269,6 +271,8 @@ public class MainOpt extends JFrame {
 			String variable;
 			for (int j=0;j<elem.length();j++) {
 				if (elem.charAt(j) == '-') continue;
+				
+				if (elem.charAt(j) == '.') continue;
 
 				if (Character.isDigit(elem.charAt(j))) {
 					hasDigit = true;
@@ -292,6 +296,7 @@ public class MainOpt extends JFrame {
 					variable = elem.substring(j,elem.length());
 					zValues.add(-1 * Double.parseDouble(value));
 					zVars.add(variable);
+					allVars.add(variable);
 					break;
 				}
 			}
@@ -329,6 +334,8 @@ public class MainOpt extends JFrame {
 				boolean foundCoeff = false;
 				for (int j=0;j<elem.length();j++) {
 					if (elem.charAt(j) == '-') continue;
+					
+					if (elem.charAt(j) == '.') continue;
 
 					if (Character.isDigit(elem.charAt(j))) {
 						foundCoeff = true;
@@ -348,6 +355,9 @@ public class MainOpt extends JFrame {
 					variable = elem.substring(j,elem.length());
 					lhsValue.add(Double.parseDouble(value));
 					lhsVar.add(variable);
+					if (!allVars.contains(variable)) {
+						allVars.add(variable);
+					}
 					break;
 				}
 			}
