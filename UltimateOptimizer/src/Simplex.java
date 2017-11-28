@@ -309,9 +309,14 @@ public class Simplex extends JPanel {
 	}
 	
 	public void getBasicSolution() {
-		sol = new Double[colNames.size()-1];
+		/*sol = new Double[colNames.size()-1];
 		for (int i=0;i<colNames.size()-1;i++) {
 			sol[i] = matrix.get(rows-1).get(i);
+		}*/
+		
+		sol = new Double[colNames.size()-1];
+		for (int i=0;i<colNames.size();i++) {
+			
 		}
 		
 		model = new DefaultTableModel(null,solVars);

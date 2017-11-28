@@ -264,18 +264,23 @@ public class MainOpt extends JFrame {
 		}
 		//separate coefficients and variables
 		for (String elem: objTokens) {
+			boolean hasDigit = false;
 			String value;
 			String variable;
 			for (int j=0;j<elem.length();j++) {
 				if (elem.charAt(j) == '-') continue;
 
 				if (Character.isDigit(elem.charAt(j))) {
+					hasDigit = true;
 					continue;
 				}
 				else {
 					if (j <= 1) { //no coefficient
 						if (j == 0) { //variable already
 							value = "1";
+						}
+						else if (hasDigit) {
+							value = elem.substring(0,j);
 						}
 						else { //sign then variable
 							value = "-1";

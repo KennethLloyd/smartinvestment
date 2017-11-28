@@ -12,6 +12,7 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import org.jfree.ui.ApplicationFrame;
@@ -75,28 +76,10 @@ public class Plotter extends JPanel {
 		gc.gridy = 0;
 		mainPanel.add(headerPanel, gc);
 		
-		//sample
-		final XYSeries series = new XYSeries("Random Data");
-	    series.add(1.0, 500.2);
-	    series.add(5.0, 694.1);
-	    series.add(4.0, 100.0);
-	    series.add(12.5, 734.4);
-	    series.add(17.3, 453.2);
-	    series.add(21.2, 500.2);
-	    series.add(21.9, null);
-	    series.add(25.6, 734.4);
-	    series.add(30.0, 453.2);
-	    final XYSeriesCollection data = new XYSeriesCollection(series);
-	    final JFreeChart chart = ChartFactory.createXYLineChart(
-	        "XY Series Demo",
-	        "X", 
-	        "Y", 
-	        data,
-	        PlotOrientation.VERTICAL,
-	        true,
-	        true,
-	        false
-	    );
+		XYDataset dataset = createDataset();
+		 
+	    JFreeChart chart = ChartFactory.createXYLineChart("XY Series Demo",
+	            "X", "Y", dataset);
 	    
 	    final ChartPanel chartPanel = new ChartPanel(chart);
 	    
@@ -111,5 +94,27 @@ public class Plotter extends JPanel {
 
 		this.add(mainPanel);
 		
+	}
+	
+	public XYDataset createDataset() {
+		XYSeriesCollection dataset = new XYSeriesCollection();
+	    XYSeries series1 = new XYSeries("Object 1");
+	    XYSeries series2 = new XYSeries("Object 2");
+	    XYSeries series3 = new XYSeries("Object 3");
+	 
+	    series1.add(0.0, 160.0);
+	    series1.add(60.0, 0.0);
+	 
+	    series2.add(0.0, 80.0);
+	    series2.add(70.0, 0.0);
+	 
+	    series3.add(0.0, 0.0);
+	    series3.add(20.0, 80.0);
+	 
+	    dataset.addSeries(series1);
+	    dataset.addSeries(series2);
+	    dataset.addSeries(series3);
+	 
+	    return dataset;
 	}
 }
