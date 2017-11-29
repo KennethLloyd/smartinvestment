@@ -1,3 +1,7 @@
+//Kenneth Lloyd P. Verastigue
+//2014-70966
+//CMSC 150 B-5L Final Project
+
 import javax.swing.*;
 
 import java.awt.*;
@@ -57,7 +61,7 @@ public class MainOpt extends JFrame {
 		cardPanel = new JPanel();
 		cardPanel.setLayout(new CardLayout());
 		mainPanel = new JPanel();
-		sp = new JScrollPane(mainPanel);
+		sp = new JScrollPane(mainPanel); //make the main panel scrollable
 		
 		graphPanel = new Plotter(cardPanel);
 		JScrollPane gsp = new JScrollPane(graphPanel);
@@ -75,14 +79,14 @@ public class MainOpt extends JFrame {
 		headerPanel = new JPanel();
 		titleLabel = new JLabel("ULTIMATE OPTIMIZER");
 		titleLabel.setFont(new Font("Serif", Font.PLAIN, 50));
-		smartButton = new JButton("Go to Smart Investment");
+		smartButton = new JButton("Go to Smart Investment"); //switch to smart investment
 		smartButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				CardLayout cl = (CardLayout)(cardPanel.getLayout());
                 cl.show(cardPanel, "SMART");
 			}
 		});
-		manualButton = new JButton("Go to User Manual");
+		manualButton = new JButton("Go to User Manual"); //switch to user manual
 		manualButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				CardLayout cl = (CardLayout)(cardPanel.getLayout());
@@ -93,9 +97,10 @@ public class MainOpt extends JFrame {
 		GridBagConstraints hgc = new GridBagConstraints();
 		hgc.insets = new Insets(0, 0, 0, 0);
 		
+		//for layouting
 		hgc.weightx = 0.5;
 		hgc.weighty = 0.5;
-		
+		//adjust positions
 		hgc.gridx = 0;
 		hgc.gridy = 0;
 		
@@ -115,16 +120,16 @@ public class MainOpt extends JFrame {
 		objPanel.setLayout(new FlowLayout());
 		zLabel = new JLabel("Z = ");
 		zLabel.setFont(new Font("Serif", Font.PLAIN, 30));
-		zField = new JTextField("Input the objective function here...",30);
+		zField = new JTextField("Input the objective function here...",30); //placeholder text for the text field
 		zField.addMouseListener(new MouseAdapter(){
 			public void mouseClicked(MouseEvent e){
-                zField.setText("");
+                zField.setText(""); //clear the field once the user click it
             }
 		});
-		objPanel.add(zLabel);
+		objPanel.add(zLabel); //panel for the objective function
 		objPanel.add(zField);
 		
-		constPanel = new JPanel();
+		constPanel = new JPanel(); //panel for the constraints
 		constPanel.setLayout(new GridBagLayout());
 		
 		constLabel = new JLabel("CONSTRAINTS");
@@ -133,20 +138,23 @@ public class MainOpt extends JFrame {
 		constButton = new JButton("Add constraint");
 		constButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				numConstraints++;
+				numConstraints++; //increment constraints for each click of the Add Constraint button
 				constPanel.removeAll(); //only for refreshing the ui
 				
-				String comboItems[] = {"<=",">="};
+				String comboItems[] = {"<=",">="}; //only two items for the combo box
+				//set up the ui (lhs - equality - rhs)
 				lhsList.add(new JTextField(15));
 				eqList.add(new JComboBox(comboItems));
 				rhsList.add(new JTextField(5));
 				
+				//layout for the three division of constraints
 				GridBagConstraints lhsgc = new GridBagConstraints();
 	            GridBagConstraints eqgc = new GridBagConstraints();
 	            GridBagConstraints rhsgc = new GridBagConstraints();
 	            
-	            for(int i=0;i<numConstraints;i++)
+	            for(int i=0;i<numConstraints;i++) //for each constraint
 	            {
+	            	//position lhs, equality, and rhs beside each other
 	                lhsgc.gridx = 0;
 	                lhsgc.gridy = i;
 	                
@@ -156,6 +164,7 @@ public class MainOpt extends JFrame {
 	                rhsgc.gridx = 2;
 	                rhsgc.gridy = i;
 
+	              //arrange all constraints from top to bottom
 	                constPanel.add(lhsList.get(i), lhsgc);
 	                constPanel.add(eqList.get(i), eqgc);
 	                constPanel.add(rhsList.get(i), rhsgc);
@@ -164,6 +173,7 @@ public class MainOpt extends JFrame {
 			}
 		});
 		
+		//assemble cards for switching
 		cardPanel.add(sp,"MAIN");
 		cardPanel.add(smartPanel,"SMART");
 		cardPanel.add(ssp, "RESULTS");
@@ -172,6 +182,7 @@ public class MainOpt extends JFrame {
 		
 		GridBagConstraints gc = new GridBagConstraints();
 		
+		//center horizontal on top
 		gc.anchor = GridBagConstraints.PAGE_START;
 		gc.weightx = 0.5;
 		gc.weighty = 0.5;
@@ -179,6 +190,7 @@ public class MainOpt extends JFrame {
 		gc.gridx = 0;
 		gc.gridy = 0;
 		
+		//position the components
 		mainPanel.add(headerPanel, gc);
 		
 		gc.weighty = 2.0;
@@ -219,14 +231,17 @@ public class MainOpt extends JFrame {
 		mainPanel.add(constHeadPanel, gc);
 		
 		buttonPanel = new JPanel();
+		//add buttons for maximization and minimization
 		maxButton = new JRadioButton("Maximize");
 		maxButton.setFont(new Font("Serif", Font.PLAIN, 30));
 		maxButton.setSelected(true);
 		minButton = new JRadioButton("Minimize");
 		minButton.setFont(new Font("Serif", Font.PLAIN, 30));
 		optRadio = new ButtonGroup();
+		//place them in a radio group so that only one item can be selected
 		optRadio.add(maxButton);
 		optRadio.add(minButton);
+		//add the buttons to the panel
 		buttonPanel.add(maxButton);
 		buttonPanel.add(minButton);
 		
@@ -241,17 +256,18 @@ public class MainOpt extends JFrame {
 		submitButton.setFont(new Font("Serif", Font.PLAIN, 30));
 		submitButton.addActionListener(new ActionListener() {
 			
-			public void actionPerformed(ActionEvent e) {
-				parseObjFxn();
-				parseConstraints();
+			public void actionPerformed(ActionEvent e) { 
+				parseObjFxn(); //first, parse the objective function
+				parseConstraints(); //then parse the constraints
 				if (!maxButton.isSelected()) {
-					doMaximize = false;
+					doMaximize = false; //minimize selected
 				}
-				System.out.println(allVars);
+				//pass the values needed
 				simplexPanel.setValues(allVars, zValues, zVars, lhsValues, lhsVars, eqMultiplier, rhsValues, doMaximize);
+				//start the simplex method
 				simplexPanel.startSolving();
 				CardLayout cl = (CardLayout)(cardPanel.getLayout());
-                cl.show(cardPanel, "RESULTS");
+                cl.show(cardPanel, "RESULTS"); //switch to results
 			}
 		});
 		
@@ -271,8 +287,8 @@ public class MainOpt extends JFrame {
 	public void parseObjFxn() {
 		//parse the objective function
 		String objFxn = zField.getText();
-		String objNoSpace = objFxn.replaceAll(" ","");
-		String[] objToken = objNoSpace.split("(?=[-+])");
+		String objNoSpace = objFxn.replaceAll(" ",""); //remove all whitespaces
+		String[] objToken = objNoSpace.split("(?=[-+])"); //separate the terms
 		for (int i=0;i<objToken.length;i++) {
 			objToken[i] = objToken[i].replaceAll("\\+","");
 		}
@@ -289,12 +305,12 @@ public class MainOpt extends JFrame {
 			String value;
 			String variable;
 			for (int j=0;j<elem.length();j++) {
-				if (elem.charAt(j) == '-') continue;
+				if (elem.charAt(j) == '-') continue; //not a variable
 				
-				if (elem.charAt(j) == '.') continue;
+				if (elem.charAt(j) == '.') continue; //still not a variable
 
-				if (Character.isDigit(elem.charAt(j))) {
-					hasDigit = true;
+				if (Character.isDigit(elem.charAt(j))) { //the coefficient
+					hasDigit = true; //continue searching
 					continue;
 				}
 				else {
@@ -303,7 +319,7 @@ public class MainOpt extends JFrame {
 							value = "1";
 						}
 						else if (hasDigit) {
-							value = elem.substring(0,j);
+							value = elem.substring(0,j); //slice the string to get the value
 						}
 						else { //sign then variable
 							value = "-1";
@@ -313,7 +329,7 @@ public class MainOpt extends JFrame {
 						value = elem.substring(0,j);
 					}
 					variable = elem.substring(j,elem.length());
-					zValues.add(-1 * Double.parseDouble(value));
+					zValues.add(-1 * Double.parseDouble(value)); //convert to double
 					zVars.add(variable);
 					allVars.add(variable);
 					break;
@@ -324,6 +340,7 @@ public class MainOpt extends JFrame {
 	}
 	
 	public void parseConstraints() {
+		//step by step
 		parseLHSConst();
 		parseEquality();
 		parseRHSConst();
@@ -332,10 +349,10 @@ public class MainOpt extends JFrame {
 	public void parseLHSConst() {
 		for (JTextField lhsField: lhsList) {
 			String lhs = lhsField.getText();
-			String lhsNoSpace = lhs.replaceAll(" ","");
-			String[] lhsToken = lhsNoSpace.split("(?=[-+])");
+			String lhsNoSpace = lhs.replaceAll(" ",""); //remove all whitespaces
+			String[] lhsToken = lhsNoSpace.split("(?=[-+])"); //separate the terms
 			for (int i=0;i<lhsToken.length;i++) {
-				lhsToken[i] = lhsToken[i].replaceAll("\\+","");
+				lhsToken[i] = lhsToken[i].replaceAll("\\+",""); //replace all + with spaces
 			}
 			ArrayList<String> lhsTokens = new ArrayList<String>(Arrays.asList(lhsToken));
 			//remove empty elements
@@ -352,12 +369,12 @@ public class MainOpt extends JFrame {
 				String variable;
 				boolean foundCoeff = false;
 				for (int j=0;j<elem.length();j++) {
-					if (elem.charAt(j) == '-') continue;
+					if (elem.charAt(j) == '-') continue; //not a variable
 					
-					if (elem.charAt(j) == '.') continue;
+					if (elem.charAt(j) == '.') continue; //still not a variable
 
-					if (Character.isDigit(elem.charAt(j))) {
-						foundCoeff = true;
+					if (Character.isDigit(elem.charAt(j))) { //the coefficient
+						foundCoeff = true; //search for another
 						continue;
 					}
 					if (j <= 1 && foundCoeff == false) { //no coefficient
@@ -374,7 +391,7 @@ public class MainOpt extends JFrame {
 					variable = elem.substring(j,elem.length());
 					lhsValue.add(Double.parseDouble(value));
 					lhsVar.add(variable);
-					if (!allVars.contains(variable)) {
+					if (!allVars.contains(variable)) { //avoid duplicate in the list of all variables
 						allVars.add(variable);
 					}
 					break;
@@ -393,12 +410,13 @@ public class MainOpt extends JFrame {
 				eqMultiplier.add(1);
 			}
 			else {
-				eqMultiplier.add(-1);
+				eqMultiplier.add(-1); //negate the slack
 			}
 		}
 	}
 	
 	public void parseRHSConst() {
+		//just convert the string to double
 		for (JTextField rhsField: rhsList) {
 			String rhs = rhsField.getText();
 			rhsValues.add(Double.parseDouble(rhs));
@@ -406,6 +424,7 @@ public class MainOpt extends JFrame {
 	}
 	
 	public static void clearEverything() {
+		//refresh the panel
 		zField.setText("");
 		constPanel.removeAll();
 		numConstraints = 0;

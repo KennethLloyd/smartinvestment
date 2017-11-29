@@ -31,7 +31,7 @@ public class Plotter extends JPanel {
 	private GridBagConstraints gc;
 	
 	public Plotter(final JPanel cardPanel) {
-		this.cardPanel = cardPanel;
+		this.cardPanel = cardPanel; //get the reference to be able to switch cards
 		
 		mainPanel = new JPanel();
 		mainPanel.setLayout(new GridBagLayout());

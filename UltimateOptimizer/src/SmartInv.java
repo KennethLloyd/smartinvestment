@@ -65,7 +65,7 @@ public class SmartInv extends JPanel {
 	private String objFxn;
 	
 	public SmartInv(final JPanel cardPanel, final Simplex simplexPanel) {
-		this.cardPanel = cardPanel;
+		this.cardPanel = cardPanel; //get the reference to be able to switch cards
 		this.simplexPanel = simplexPanel;
 		mainPanel = new JPanel();
 		mainPanel.setLayout(new GridBagLayout());
@@ -76,7 +76,7 @@ public class SmartInv extends JPanel {
 		titleLabel = new JLabel("SMART INVESTMENT");
 		titleLabel.setFont(new Font("Serif", Font.PLAIN, 50));
 		ultButton = new JButton("Go to Ultimate Optimizer");
-		ultButton.addActionListener(new ActionListener() {
+		ultButton.addActionListener(new ActionListener() { //switch to ultimate optimizer
 			public void actionPerformed(ActionEvent e) {
 				CardLayout cl = (CardLayout)(cardPanel.getLayout());
                 cl.show(cardPanel, "MAIN");
@@ -86,6 +86,7 @@ public class SmartInv extends JPanel {
 		GridBagConstraints hgc = new GridBagConstraints();
 		hgc.insets = new Insets(0, 0, 0, 0);
 		
+		//layouting stuff
 		hgc.weightx = 0.5;
 		hgc.weighty = 0.5;
 		
@@ -111,6 +112,8 @@ public class SmartInv extends JPanel {
 		
 		mainPanel.add(headerPanel, gc);
 		
+		
+		//get the inputs
 		initialPanel = new JPanel();
 		initialPanel.setLayout(new GridBagLayout());
 		
@@ -299,18 +302,20 @@ public class SmartInv extends JPanel {
 				yield[2] = Double.parseDouble(totZField.getText()) * 0.01;
 				yield[3] = Double.parseDouble(totWField.getText()) * 0.01;
 				
-				now = Double.parseDouble(totYField.getText()) * 0.01;
+				now = Double.parseDouble(totYField.getText()) * 0.01; //security Y if bought now
 				
 				rows = security.length;
 				cols = years;
 				arr = new String[rows][cols+1]; //cols+1 for getting the objective function
 				constraints = new ArrayList<String>();
 				
+				//step by step
 				createMatrix();
 				formConstraints();
 				parseObjFxn();
 				parseConstraints();
 				
+				//pass needed values
 				simplexPanel.setValues(allVars, zValues, zVars, lhsValues, lhsVars, eqMultiplier, rhsValues, true);
 				simplexPanel.startSolving();
 				CardLayout cl = (CardLayout)(cardPanel.getLayout());
@@ -329,7 +334,7 @@ public class SmartInv extends JPanel {
 		this.add(mainPanel);
 	}
 	
-	public void createMatrix() {
+	public void createMatrix() { //stores the variables in the matrix
 		for (int i=0;i<rows;i++) {
 			for (int j=0;j<years;j++) {
 				if (i == 1 && j == 2) { //can buy security Y any year but year 3
@@ -367,7 +372,7 @@ public class SmartInv extends JPanel {
 						}
 					}
 				}
-				constraints.add(eqn);
+				constraints.add(eqn); //add to list of constraints
 			}
 			else {
 				String eqn = "";
@@ -386,16 +391,16 @@ public class SmartInv extends JPanel {
 								else {
 									interest = ((initInvestment + (initInvestment * yield[k]))/initInvestment);
 								}
-								eqn += "-" + interest + arr[k][i-maturity[k]];
+								eqn += "-" + interest + arr[k][i-maturity[k]]; //negate the values as transposed
 							}
-							if (k+1 == rows) {
+							if (k+1 == rows) { //last row so equate to zero
 								eqn += " = 0";
 							}
 						}
 					}
 				}
 				System.out.println(eqn);
-				if (i == cols) {
+				if (i == cols) { //last constraint is equal to the objective function
 					objFxn = eqn;
 					System.out.println(objFxn);
 				}
@@ -460,8 +465,9 @@ public class SmartInv extends JPanel {
 		}
 	}
 	
-	public void parseConstraints() {
+	public void parseConstraints() { //same as the one in ultimate optimizer
 		for (int i=0;i<constraints.size();i++) {
+			//separate the equation with equal signs
 			String constraint = constraints.get(i);
 			String tokens[] = constraint.split("=");
 			lhsList.add(tokens[0]);
@@ -529,12 +535,13 @@ public class SmartInv extends JPanel {
 	
 	public void parseEquality() {
 		for (int i=0;i<years;i++) {
-			eqMultiplier.add(1);
+			eqMultiplier.add(1); //all =
 		}
 	}
 	
 	public void parseRHSConst() {
 		for (String rhs: rhsList) {
+			//convert string to double
 			rhsValues.add(Double.parseDouble(rhs));
 		}
 	}

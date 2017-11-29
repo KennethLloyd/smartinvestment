@@ -52,14 +52,14 @@ public class Simplex extends JPanel {
 	private Plotter graphPanel;
 	
 	public Simplex(final JPanel cardPanel, Plotter graphPanel) {
-		this.cardPanel = cardPanel;
+		this.cardPanel = cardPanel; //get the reference to be able to switch cards
 		this.graphPanel = graphPanel;
 		
 		mainPanel = new JPanel();
 		mainPanel.setLayout(new GridBagLayout());
 		
-		tables = new ArrayList<JTable>();
-		solTables = new ArrayList<JTable>();
+		tables = new ArrayList<JTable>(); //for the tableu
+		solTables = new ArrayList<JTable>(); //for the basic solution
 		
 		headerPanel = new JPanel();
 		titleLabel = new JLabel("RESULTS");
@@ -68,7 +68,7 @@ public class Simplex extends JPanel {
 		ultButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				MainOpt.clearEverything();
-				CardLayout cl = (CardLayout)(cardPanel.getLayout());
+				CardLayout cl = (CardLayout)(cardPanel.getLayout()); //switch back to ultimate optimizer
                 cl.show(cardPanel, "MAIN");
 			}
 		});
@@ -76,14 +76,14 @@ public class Simplex extends JPanel {
 		graphButton = new JButton("Show Graph");
 		graphButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				CardLayout cl = (CardLayout)(cardPanel.getLayout());
+				CardLayout cl = (CardLayout)(cardPanel.getLayout()); //switch to graph
 				cl.show(cardPanel, "GRAPH");
 			}
 		});
 		headerPanel.setLayout(new GridBagLayout());
 		GridBagConstraints hgc = new GridBagConstraints();
 		hgc.insets = new Insets(0, 5, 0, 0);
-		
+		//layout stuff
 		hgc.weightx = 0.5;
 		hgc.weighty = 0.5;
 		
@@ -132,8 +132,9 @@ public class Simplex extends JPanel {
 	}
 	
 	public void setValues(ArrayList<String> allVars, ArrayList<Double> zValues, ArrayList<String> zVars, ArrayList<ArrayList<Double>> lhsValues, ArrayList<ArrayList<String>> lhsVars, ArrayList<Integer> eqMultiplier, ArrayList<Double> rhsValues, boolean doMaximize) {
-		tables.clear();
+		tables.clear(); //refresh the tables
 		solTables.clear();
+		//set the passed values
 		this.allVars = allVars;
 		this.zValues = zValues;
 		this.zVars = zVars;
@@ -164,22 +165,23 @@ public class Simplex extends JPanel {
 	}
 	
 	public void startSolving() {
+		//step by step
 		setInitialTableu();
 		doSimplexMethod();
 		renderTables();
 	}
 	
 	public void fillColNames() {
+		//get all the variables and treat them as column names
 		for (String var: allVars) {
 			colNames.add(var);
 		}
 		for (int i=0;i<eqMultiplier.size();i++) {
 			colNames.add("S" + (i+1));
 		}
+		//add Z and Solution column as the last two columns
 		colNames.add("Z");
 		colNames.add("Solution");
-		
-		System.out.println(colNames);
 		
 		cNames = new String[colNames.size()]; //store to static array for table
 		for (int i=0;i<colNames.size();i++) {
@@ -193,16 +195,15 @@ public class Simplex extends JPanel {
 	}
 	
 	public void fillRowNames() {
+		//get all the slack variables
 		for (int i=0;i<eqMultiplier.size();i++) {
 			rowNames.add("S" + (i+1));
 		}
 		rowNames.add("Z");
-		
-		System.out.println(rowNames);
 	}
 	
 	public void setInitialTableu() {	
-		int sPos = allVars.size();
+		int sPos = allVars.size(); //starting position of the slack variables are right after the variables columns
 		
 		for (int i=0;i<lhsValues.size();i++) { //per constraint
 			for (int j=0;j<cols;j++) {
@@ -212,7 +213,7 @@ public class Simplex extends JPanel {
 						matrix.get(i).add(j, lhsValues.get(i).get(ind));
 					}
 					else {
-						matrix.get(i).add(j, 0.0);
+						matrix.get(i).add(j, 0.0); //no match
 					}
 				}
 				else if (j == sPos) { //set value for slack variables
@@ -225,10 +226,10 @@ public class Simplex extends JPanel {
 					matrix.get(i).add(j, 0.0);
 				}
 			}
-			sPos++;
+			sPos++; //go to next slack variable
 		}
 		
-		int zIndex = rows - 1;
+		int zIndex = rows - 1; //for filling up the row of z
 		for (int i=0;i<cols;i++) {
 			if (colNames.get(i).equals("Z")) {
 				matrix.get(zIndex).add(i, 1.0);
@@ -239,7 +240,7 @@ public class Simplex extends JPanel {
 					matrix.get(zIndex).add(i, zValues.get(ind));
 				}
 				else {
-					matrix.get(zIndex).add(i, 0.0);
+					matrix.get(zIndex).add(i, 0.0); //no match
 				}
 			}
 		}
@@ -255,15 +256,16 @@ public class Simplex extends JPanel {
 	}
 	
 	public void doSimplexMethod() {
-		mat = new Double[rows][cols];
+		mat = new Double[rows][cols]; //static 2d array for rendering tables
 		int counter = 1;
-		getBasicSolution();
+		//for initial tableu
+		getBasicSolution(); 
 		addTables();
 		System.out.println("Iteration: " + counter);
 	    for (ArrayList<Double> mat: matrix) {
 	    	System.out.println(mat);
 	    }
-		while (hasNegative(matrix.get(rows-1))) {
+		while (hasNegative(matrix.get(rows-1))) { //if there are still negative numbers in the bottom row
 			Double max = 0.0;
 			int pivotCol = -1; //as null
 			ArrayList<Double> bottomRow = matrix.get(rows-1);
@@ -320,7 +322,7 @@ public class Simplex extends JPanel {
 		    }
 		    getBasicSolution();
 		    addTables();
-		    
+		    //next iteration
 		    counter++;
 		    System.out.println("Iteration: " + counter);
 		    for (ArrayList<Double> mat: matrix) {
@@ -330,9 +332,9 @@ public class Simplex extends JPanel {
 	}
 	
 	public void getBasicSolution() {
-		sol = new Double[colNames.size()-1];
+		sol = new Double[colNames.size()-1]; //basic solution columns are equal to the matrix columns minus the solution column
 		for (int i=0;i<cols-1;i++) {
-			sol[i] = 0.0;
+			sol[i] = 0.0; //initial values
 		}
 		
 		for (int i=0;i<cols-1;i++) {
@@ -340,6 +342,7 @@ public class Simplex extends JPanel {
 			int numOne = 0;
 			int oneIndex = 0;
 			for (int j=0;j<rows;j++) {
+				//count the numbers of 0s and 1s
 				if (matrix.get(j).get(i) == 0.0) {
 					numZero++;
 				}
@@ -348,32 +351,34 @@ public class Simplex extends JPanel {
 					oneIndex = j;	
 				}
 			}
-			if (numZero == rows-1 && numOne == 1) {
-				sol[i] = matrix.get(oneIndex).get(cols-1);
+			if (numZero == rows-1 && numOne == 1) { //there should only be one 1 and the rest should be zeros
+				sol[i] = matrix.get(oneIndex).get(cols-1); //get the value from the solution column using the index of 1
 			}
 		}
 		
+		//storage for data
 		model = new DefaultTableModel(null,solVars);
 	    
 	    ((DefaultTableModel) model).addRow(solVars);
+	    //add the column names and data
 	    ((DefaultTableModel) model).addRow(sol);
 	    
 	    table = new JTable(model);
 	    
 	    DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
-	    centerRenderer.setHorizontalAlignment( JLabel.CENTER );
+	    centerRenderer.setHorizontalAlignment( JLabel.CENTER ); //align center the text
 	    TableColumnModel tcm = table.getColumnModel();
 	    for (int i=0;i<tcm.getColumnCount();i++) {
-	    	tcm.getColumn(i).setPreferredWidth(170);	
+	    	tcm.getColumn(i).setPreferredWidth(170);	//adjust the width of all cells
 	    	tcm.getColumn(i).setCellRenderer( centerRenderer );
 	    }
 	    
-	    table.setRowHeight(0,30);
+	    table.setRowHeight(0,30); //adjust the height
 	    table.setFont(new Font("Serif", Font.ROMAN_BASELINE, 20));
 	    solTables.add(table);
 	}
 	
-	public void addTables() {
+	public void addTables() { //this is for each iteration
 		for (int i=0;i<rows;i++) { //convert arraylist to static 2d array
 	    	for (int j=0;j<cols;j++) {
 	    		mat[i][j] = (Double) matrix.get(i).get(j);
@@ -399,10 +404,11 @@ public class Simplex extends JPanel {
 	    
 	    table.setFont(new Font("Serif", Font.ROMAN_BASELINE, 20));
 	    table.setRowHeight(0,30);
-	    tables.add(table);
+	    tables.add(table); //add to the array of tables
 	}
 	
 	public void renderTables() {
+		//show tables on the ui
 		gc.gridx = 0;
 		gc.gridy = 2;
 		
@@ -410,6 +416,8 @@ public class Simplex extends JPanel {
 			gc.weightx = 0.5;
 			gc.weighty = 0.5;
 			
+			
+			//arrange the components vertically
 			gc.gridy += 1;
 			JLabel iterationLabel = new JLabel("Iteration " + (i+1));
 			iterationLabel.setFont(new Font("Serif", Font.BOLD, 20));
@@ -425,6 +433,7 @@ public class Simplex extends JPanel {
 			mainPanel.add(solTables.get(i),gc);
 			
 			mainPanel.revalidate();
+			//refresh
 		}
 	}
 }
